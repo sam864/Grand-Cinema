@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Cinema {
+    id              String @id @default(uuid())
+    name            String
+    number_of_rooms Int
+    rooms           Room[]
+}
+
+model Room {
+    id         String      @id @default(uuid())
+    cinema     Cinema      @relation(fields: [cinemaId], references: [id])
+    cinemaId   String
+    number     String
+    capacity   Int
+    screenings Screening[]
+    seats      Seat[]
+    layout     Layout      @relation(fields: [layoutId], references: [id])
+    layoutId   String
+}
+
+model Movie {
+    id           String      @id @default(uuid())
+    title        String      @unique
+    length       Int
+    release_date String
+    description  String
+    screenings   Screening[]
+}
+
+model Screening {
+    id              String        @id @default(uuid())
+    room            Room          @relation(fields: [roomId], references: [id])
+    roomId          String
+    movie           Movie         @relation(fields: [movieId], references: [id])
+    movieId         String
+    available_seats Int
+    screening_time  String
+    seat_price      Int
+    reservations    Reservation[]
+}
+
+model Seat {
+    id           String        @id @default(uuid())
+    number       String
+    room         Room          @relation(fields: [roomId], references: [id])
+    roomId       String
+    reservations Reservation[]
+}
+
+model Reservation {
+    id           String    @id @default(uuid())
+    user         User      @relation(fields: [userId], references: [id])
+    screening    Screening @relation(fields: [screeningId], references: [id])
+    userId       String
+    screeningId  String
+    total_amount Int
+    seats        Seat[] // Change to an array of seats
+}
+
+model User {
+    id           String        @id @default(uuid())
+    email        String        @unique
+    password     String
+    reservations Reservation[]
+}
+
+model Admin {
+    id        String @id @default(uuid())
+    access_id String @unique
+    password  String
+}
+
+model Layout {
+    id          String @id @default(uuid())
+    name        String @unique
+    rows        Int
+    columns     Int
+    total_seats Int
+    seat_map    Json[]
+    rooms       Room[]
+}
